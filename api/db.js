@@ -5,8 +5,17 @@
      chỉ tạo đơn mới (giá tính lại theo thực đơn thật) / huỷ đơn đang chờ, và gửi đánh giá. */
 const crypto = require('crypto');
 
-const BASE = () => (process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '').replace(/\/$/, '');
-const TOKEN = () => process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '';
+/* Đọc biến môi trường Upstash/Vercel KV, kể cả khi bạn đặt tiền tố riêng (ví dụ STORAGE_KV_REST_API_URL). */
+function envFind(kind) {
+  const e = process.env;
+  const direct = kind === 'URL' ? (e.UPSTASH_REDIS_REST_URL || e.KV_REST_API_URL) : (e.UPSTASH_REDIS_REST_TOKEN || e.KV_REST_API_TOKEN);
+  if (direct) return direct;
+  const re = kind === 'URL' ? /REST(_API)?_URL$/ : /REST(_API)?_TOKEN$/;
+  for (const k of Object.keys(e)) if (re.test(k) && !/READ_ONLY/.test(k) && e[k]) return e[k];
+  return '';
+}
+const BASE = () => envFind('URL').replace(/\/$/, '');
+const TOKEN = () => envFind('TOKEN');
 const KEYS = new Set(['menu', 'orders', 'reviews', 'exp', 'cfg'].map(t => 'rq:' + t));
 const DEFAULT_HASH = crypto.createHash('sha256').update('admin123').digest('hex');
 

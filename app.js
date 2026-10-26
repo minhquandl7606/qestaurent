@@ -10,6 +10,7 @@ const money = n => (Math.round(n)||0).toLocaleString('vi-VN') + 'đ';
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 const pad = n => String(n).padStart(2,'0');
 const dstr = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const vd = d => String(d).split('-').reverse().join('/');
 const today = () => dstr(new Date());
 const live = t => Object.values(S[t]).filter(x => !x.del);
 
@@ -114,7 +115,6 @@ function delExp(id){ const e=S.exp[id]; ask(`Xoá khoản chi ${money(e.amount)}
 function delReview(id){ ask('Xoá đánh giá này?', () => { put('reviews',{...S.reviews[id],del:true}); render(); }); }
 function readAll(){ live('reviews').filter(r=>!r.read).forEach(r=>put('reviews',{...r,read:true})); render(); }
 function clearCart(){ ask('Bỏ tất cả món đã chọn?', () => { C.qty={}; C.notes={}; render(); }, 'Bỏ hết'); }
-function ask1(id){ ask(`Bỏ "${S.menu[id].name}" khỏi đơn?`, () => { C.qty[id]=0; delete C.notes[id]; render(); }, 'Bỏ món'); }
 function cancelBtn(){ const o=S.orders[lastId]; return o && !o.del && o.status==='pending' ? '<button class="btn rose" style="margin-right:8px" onclick="cancelMine()">Huỷ đơn này</button>' : ''; }
 function cancelMine(){ ask('Huỷ đơn bạn vừa đặt?', () => { const o=S.orders[lastId]; if (!o || o.status!=='pending') return toast('Quán đã nhận đơn, không huỷ được'); put('orders',{...o,del:true}); lastId=''; toast('Đã huỷ đơn'); cview='menu'; render(); }, 'Huỷ đơn'); }
 
@@ -123,6 +123,13 @@ function render(){
   document.body.classList.toggle('in', !!role);
   if (!role) return $('#app').innerHTML = loginHtml();
   $('#app').innerHTML = role==='admin' ? adminHtml() : custHtml();
+  prettyMoney();
+}
+/* chữ "đ" nhỏ hơn và số dùng chữ số đều nhau cho dễ đọc */
+function prettyMoney(){
+  document.querySelectorAll('.stat b, .price, .tot, td.n').forEach(el => {
+    if (el.children.length === 0 && /^-?[\d.]+đ$/.test(el.textContent)) el.innerHTML = el.textContent.slice(0,-1) + '<span class="u">đ</span>';
+  });
 }
 const LOGO = '<svg class="logo" viewBox="0 0 64 44" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 24 32 5l26 19"/><path d="M47 13V6h5v11"/><path d="M24 37v-6a5 5 0 0 1 2-9 6 6 0 0 1 12 0 5 5 0 0 1 2 9v6z"/></svg>';
 function topbar(title, extra=''){
@@ -179,7 +186,7 @@ function custHtml(){
     const q = C.qty[m.id]||0;
     return `<div class="card dish"><div class="img">${m.img?`<img src="${m.img}" alt="${esc(m.name)}">`:esc(m.emoji||'🍽️')}</div>
     <div class="body"><h3 style="font-size:24px">${esc(m.name)}</h3><div class="price">${money(m.price)}</div>
-    ${m.on===false?'<span class="tag">Tạm hết</span>':`<div class="qty"><button onclick="chg('${m.id}',-1)">−</button><b>${q}</b><button onclick="chg('${m.id}',1)">+</button>${q?`<button class="btn rose sm" style="margin-left:auto" onclick="ask1('${m.id}')">Bỏ món</button>`:''}</div>
+    ${m.on===false?'<span class="tag">Tạm hết</span>':`<div class="qty"><button onclick="chg('${m.id}',-1)">−</button><b>${q}</b><button onclick="chg('${m.id}',1)">+</button></div>
     ${q?`<input placeholder="Lưu ý cho món này (ít cay, không hành…)" value="${esc(C.notes[m.id]||'')}" oninput="C.notes['${m.id}']=this.value"><div class="chips">${QN.map(t=>`<span class="chip ${(C.notes[m.id]||'').includes(t)?'on':''}" onclick="addNote('${m.id}','${t}')">${t}</span>`).join('')}</div>`:''}`}</div></div>`;
   }).join('');
   return topbar('Thực đơn hôm nay') + tabs + contactHtml() + trackBanner() + (items.length ? `<div class="grid menu">${cards}</div>` : '<p class="mute">Quán chưa có món nào.</p>') + cartBar();
@@ -367,10 +374,10 @@ function statsHtml(){
   <p class="mute">Giá vốn được tự cộng từ các đơn đã bấm "Hoàn thành", theo giá vốn lúc khách đặt. Chi phí khác là các khoản bạn ghi thủ công bên dưới.</p>
   <button class="btn" onclick="exportXls()" style="margin-bottom:16px">Xuất file Excel</button>
   <div class="card scroll" style="margin-bottom:16px"><table><tr><th>Ngày</th><th class="n">Đơn</th><th class="n">Đã xử lý</th><th class="n">Thu</th><th class="n">Giá vốn</th><th class="n">Chi khác</th><th class="n">Lợi nhuận</th></tr>
-  ${a.filter(r=>r.n||r.exp).map(r=>`<tr><td>${r.d}</td><td class="n">${r.n}</td><td class="n">${r.done}</td><td class="n">${money(r.rev)}</td><td class="n">${money(r.cogs)}</td><td class="n">${money(r.exp)}</td><td class="n" style="color:${r.profit>=0?'var(--sage)':'var(--rose)'}">${money(r.profit)}</td></tr>`).join('')||'<tr><td colspan="7" class="mute">Chưa có dữ liệu trong khoảng này.</td></tr>'}</table></div>
+  ${a.filter(r=>r.n||r.exp).map(r=>`<tr><td>${vd(r.d)}</td><td class="n">${r.n}</td><td class="n">${r.done}</td><td class="n">${money(r.rev)}</td><td class="n">${money(r.cogs)}</td><td class="n">${money(r.exp)}</td><td class="n" style="color:${r.profit>=0?'var(--sage)':'var(--rose)'}">${money(r.profit)}</td></tr>`).join('')||'<tr><td colspan="7" class="mute">Chưa có dữ liệu trong khoảng này.</td></tr>'}</table></div>
   <div class="card"><h3>Ghi chi phí khác</h3><div class="row"><input id="ed" type="date" value="${today()}"><input id="en" placeholder="Nội dung (ga, điện nước, tiền ship…)"><input id="ea" type="number" placeholder="Số tiền"></div>
   <button class="btn" style="margin-top:12px" onclick="addExp()">Lưu khoản chi</button>
-  <table style="margin-top:12px">${exps.map(e=>`<tr><td>${e.date}</td><td>${esc(e.note)}</td><td class="n">${money(e.amount)}</td><td class="n"><button class="btn rose sm" onclick="delExp('${e.id}')">Xoá</button></td></tr>`).join('')}</table></div>`;
+  <table style="margin-top:12px">${exps.map(e=>`<tr><td>${vd(e.date)}</td><td>${esc(e.note)}</td><td class="n">${money(e.amount)}</td><td class="n"><button class="btn rose sm" onclick="delExp('${e.id}')">Xoá</button></td></tr>`).join('')}</table></div>`;
 }
 function addExp(){ const amount=+$('#ea').value, note=$('#en').value.trim(); if(!(amount>0)) return toast('Nhập số tiền', true); put('exp',{id:uid(),date:$('#ed').value||today(),note,amount}); render(); }
 function exportXls(){

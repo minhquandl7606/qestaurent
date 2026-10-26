@@ -41,16 +41,25 @@ a.btn{text-decoration:none;display:inline-block;text-align:center}
 .tab.on{background:var(--gold);color:#1b140e;border-color:var(--gold);font-weight:600}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
 .grid{display:grid;gap:14px}
-.stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:16px}
-.stat b{display:block;font:700 26px 'Cormorant Garamond',serif;color:var(--gold)}
+.stats{grid-template-columns:repeat(auto-fit,minmax(168px,1fr));margin-bottom:16px}
+.stat b{display:block;font:700 clamp(20px,5.2vw,26px)/1.15 'Be Vietnam Pro',system-ui,sans-serif;letter-spacing:-.4px;color:var(--gold);white-space:nowrap;font-variant-numeric:lining-nums tabular-nums}
+.stat>span{display:block;margin-top:4px;line-height:1.35}
+.u{font-size:.7em;font-weight:600;margin-left:2px;opacity:.85;letter-spacing:0}
 .stat span{color:var(--mute);font-size:13px}
 .menu{grid-template-columns:repeat(auto-fit,minmax(250px,400px));justify-content:center}
 .dish{padding:0;overflow:hidden;display:flex;flex-direction:column}
 .dish .img{aspect-ratio:4/3;background:linear-gradient(135deg,#2a3a2e,#1c2620);display:grid;place-items:center;font-size:54px;overflow:hidden}
 .dish .img img{width:100%;height:100%;object-fit:cover}
 .dish .body{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}
-.price{color:var(--gold);font-weight:600}
+.price,.tot,.qty b,td.n,.bar b{font-variant-numeric:lining-nums tabular-nums}
+.price,.tot{font-family:'Be Vietnam Pro',system-ui,sans-serif}
+.price{color:var(--gold);font-weight:600;letter-spacing:-.2px}
+h1,h2,h3{font-variant-numeric:lining-nums}
+.dish .price{font-size:20px;font-weight:700}
+input[type=number]{-moz-appearance:textfield;appearance:textfield;font-variant-numeric:lining-nums tabular-nums}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .qty{display:flex;align-items:center;gap:10px}
+.qty b{min-width:30px;text-align:center;font-size:18px}
 .qty button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--panel2);cursor:pointer;font-size:18px}
 .bar{position:sticky;bottom:0;background:#201a17ee;backdrop-filter:blur(6px);border-top:1px solid var(--line);padding:12px 18px;display:flex;align-items:center;gap:14px;justify-content:space-between;margin:20px -18px -18px}
 .center{max-width:440px;margin:5vh auto;text-align:center}
@@ -76,10 +85,13 @@ a.btn{text-decoration:none;display:inline-block;text-align:center}
 .order.done{opacity:.72}
 .lines{border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);padding:8px 0}
 .mute{color:var(--mute);font-size:13px}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
-th{color:var(--mute);font-weight:500}
+table{width:100%;border-collapse:collapse;font-size:15px}
+tbody tr:hover td,tr:hover>td{background:#ffffff08}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td:first-child{white-space:normal}
+th{color:var(--mute);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
 td.n,th.n{text-align:right}
+td.n{font-weight:500}
 .scroll{overflow-x:auto}
 .modal{position:fixed;inset:0;background:#000a;display:grid;place-items:center;padding:18px;z-index:9}
 .modal .card{max-width:440px;width:100%;max-height:90vh;overflow:auto}
